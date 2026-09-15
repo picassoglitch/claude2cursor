@@ -1,0 +1,15 @@
+{
+  "name": "claude-cursor-bridge",
+  "version": "1.0.0",
+  "description": "Two-way CLI link between Claude Code and Cursor over a shared local message bus",
+  "type": "module",
+  "bin": { "agent-bridge": "bin/agent-bridge.mjs" },
+  "files": ["bin", "src", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "setup": "npm install -g . && agent-bridge install"
+  },
+  "keywords": ["mcp", "claude-code", "cursor", "agent", "bridge"],
+  "license": "MIT",
+  "private": false
+}
