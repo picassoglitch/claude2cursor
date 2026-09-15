@@ -7,8 +7,15 @@
   "files": ["bin", "src", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },
   "scripts": {
+    "test": "node --test test/*.test.mjs",
     "setup": "npm install -g . && agent-bridge install"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/picassoglitch/claude2cursor.git"
+  },
+  "bugs": { "url": "https://github.com/picassoglitch/claude2cursor/issues" },
+  "homepage": "https://github.com/picassoglitch/claude2cursor#readme",
   "keywords": ["mcp", "claude-code", "cursor", "agent", "bridge"],
   "license": "MIT",
   "private": false

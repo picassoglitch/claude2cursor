@@ -124,3 +124,24 @@ Node.js >= 18. No runtime dependencies.
 ## License
 
 MIT
+
+## Development
+
+```bash
+npm test          # 68 tests, node:test, no dependencies
+npm pack          # verify the published tarball
+```
+
+CI runs the suite on Node 18/20/22, then separately packs the tarball, installs
+it globally, and exercises the installed `agent-bridge` binary end to end —
+including a real MCP handshake — so a packaging mistake fails the build rather
+than reaching users.
+
+### Notes for contributors
+
+- Tests each get their own `AGENT_BRIDGE_HOME`, so nothing touches a real bridge.
+- `stdout` in the MCP server is reserved for JSON-RPC frames. Human-readable
+  output goes to `stderr`, or it corrupts the protocol stream.
+- A read position is a watermark plus any sequences consumed above it
+  (`{ seen, extra }`). A thread-filtered read must consume only its own thread —
+  see the regression tests in `test/bridge.test.mjs`.
