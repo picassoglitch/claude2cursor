@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor declared in package.json engines, plus the maintained lines.
+        node: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Syntax check every module
+        run: for f in bin/*.mjs src/*.mjs; do node --check "$f"; done
+      - name: Run tests
+        run: npm test
+
+  package:
+    name: package installs and runs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Guards the packaging contract: the published tarball must contain
+      # everything the bin needs, and the bin must work once linked onto PATH.
+      - name: Pack and install globally
+        run: |
+          npm pack
+          npm install -g ./claude-cursor-bridge-*.tgz
+
+      - name: Installed CLI responds
+        run: |
+          agent-bridge channel
+          agent-bridge doctor
+
+      - name: Bridge round-trips through the installed binary
+        run: |
+          agent-bridge send --as claude 'ci round trip'
+          agent-bridge inbox --as cursor | tee /tmp/inbox.txt
+          grep -q 'ci round trip' /tmp/inbox.txt
+
+      - name: MCP server completes a handshake
+        run: |
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            | agent-bridge mcp --as claude 2>/dev/null | tee /tmp/mcp.txt
+          grep -q '"serverInfo"' /tmp/mcp.txt
+          grep -q 'bridge_ask' /tmp/mcp.txt
